@@ -1,0 +1,11 @@
+{
+  "name": "opc",
+  "version": "1.0.0",
+  "description": "OPC for Node-red",
+  "main": "opc-endpoint.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

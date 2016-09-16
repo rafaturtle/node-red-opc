@@ -1,0 +1,151 @@
+<script type="text/javascript">
+
+
+
+
+
+RED.nodes.registerType('opc-server',{
+    category: 'opc',
+    color:"#3FADB5",
+    defaults: {
+        name: {value:""},
+        options: {value: "{}", required:true}
+    },
+    inputs:1,
+    outputs:1,
+    align: "right",
+    icon: "opcuanodeLogo.png",
+    label: function() {
+        return this.name || "opc-server";
+    },
+    labelStyle: function() {
+        return this.name?"node_label_italic":"";
+    },oneditprepare: function () {
+        try {
+
+
+
+            
+
+            this.editor = RED.editor.createEditor({
+                id: 'node-input-func-editor',
+                mode: 'ace/mode/javascript',
+                value: $("#node-input-options").val(),
+                globals: {
+                    msg:true,
+                    context:true,
+                    RED: true,
+                    util: true,
+                    flow: true,
+                    global: true,
+                    console: true,
+                    Buffer: true,
+                    setTimeout: true,
+                    clearTimeout: true,
+                    setInterval: true,
+                    clearInterval: true
+                }
+            });
+
+            var actionListbox = $("#node-input-action");
+
+            this.actionTemplates = {
+                addtag:'{"action":"addtag","name":"mytag","node":"myarea.myequipment","type":"integer"}',
+                addnode:'{"action":"addnode","parent":"root","name":"myequipment"}',
+                startserver:'{"action":"startserver"}',
+                createserver:'{"action":"createserver","servername":"localhost","port":"53880","endpoint":"/opcua"}'};
+
+            var me = this;
+
+            // var o = JSON.parse(me.actionTemplates[0]) // may throw if json is malformed
+            // me.editor.setValue("return " + JSON.stringify(o, null, 4)); 
+
+            actionListbox.change(function(){
+                var o = JSON.parse(me.actionTemplates[actionListbox.val()]) // may throw if json is malformed
+                me.editor.setValue(JSON.stringify(o, null, 4));  
+            });
+
+
+        } catch (err) {
+            console.log(err);
+        }
+        finally {
+            console.log("finally");
+        }
+
+        this.editor.focus();
+
+    },oneditsave: function() {
+        
+        var annot = this.editor.getSession().getAnnotations();
+        this.noerr = 0;
+        $("#node-input-noerr").val(0);
+        for (var k=0; k < annot.length; k++) {
+                //console.log(annot[k].type,":",annot[k].text, "on line", annot[k].row);
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-options").val(this.editor.getValue());
+            delete this.editor;
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+            var height = $("#dialog-form").height();
+            for (var i=0;i<rows.size();i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-text-editor-row");
+            height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+            $(".node-text-editor").css("height",height+"px");
+            this.editor.resize();
+        }
+    });
+</script>
+
+
+
+
+<script type="text/x-red" data-template-name="opc-server">
+<div class="form-row">
+    <label for="node-input-name"><i class="icon-tasks"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="">    
+</div>
+
+<div class="form-row" style="margin-bottom: 0px;">
+        <input type="hidden" id="node-input-options" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+
+
+<div class="form-row">
+<label for="node-input-action"><i class="fa fa-tasks"></i> Template</label>
+<select type="text" id="node-input-action" style="width:72%;">
+    <option selected value=""></option>
+    <option value="addtag">Add tag</option>
+    <option value="addnode">Add node</option>
+    <option value="startserver">Start server</option>
+    <option value="createserver">Create server</option>
+</select>
+</div>
+
+
+
+<div class="form-row">
+<label for="node-input-port"><i class="icon-tasks"></i> Action</label>
+<div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-func-editor" ></div>
+
+</div>
+
+
+</script>
+
+
+
+<script type="text/x-red" data-help-name="OpcUa-Server">
+    <p>Creates OPC UA server with own variables, object structures and methods to endpoint: opc.tcp://hostname.local:53880/</p>
+    <p>
+
+    </p>
+</script>
